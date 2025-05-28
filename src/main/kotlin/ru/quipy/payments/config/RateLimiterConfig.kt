@@ -3,6 +3,7 @@ package ru.quipy.payments.config
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import ru.quipy.common.utils.LeakingBucketRateLimiter
+import ru.quipy.common.utils.NonBlockingOngoingWindow
 import ru.quipy.common.utils.OngoingWindow
 import ru.quipy.common.utils.RateLimiter
 import java.time.Duration
@@ -18,7 +19,7 @@ class RateLimiterConfig {
         )
     }
     @Bean
-    fun ongoingWindow(): OngoingWindow {
-        return OngoingWindow(40)
+    fun ongoingWindow(): NonBlockingOngoingWindow {
+        return NonBlockingOngoingWindow(40)
     }
 }
