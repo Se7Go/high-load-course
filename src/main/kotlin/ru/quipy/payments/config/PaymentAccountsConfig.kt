@@ -3,6 +3,7 @@ package ru.quipy.payments.config
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import ru.quipy.common.utils.OngoingWindow
@@ -22,12 +23,12 @@ import java.util.UUID
 @Configuration
 class PaymentAccountsConfig {
     companion object {
-        private val PAYMENT_PROVIDER_HOST_PORT: String = "localhost:1234"
         private val javaClient = HttpClient.newBuilder().build()
         private val mapper = ObjectMapper().registerKotlinModule().registerModules(JavaTimeModule())
     }
-
-    private val allowedAccounts = setOf("acc-8")
+    @Value("\${payment.hostPort}")
+    lateinit var paymentProviderHostPort: String
+    private val allowedAccounts = setOf("acc-7")
 
     @Bean
     fun accountAdapters(
@@ -36,7 +37,7 @@ class PaymentAccountsConfig {
         ongoingWindow: OngoingWindow
     ): List<PaymentExternalSystemAdapter> {
         val request = HttpRequest.newBuilder()
-            .uri(URI("http://${PAYMENT_PROVIDER_HOST_PORT}/external/accounts?serviceName=onlineStore")) // todo sukhoa service name
+            .uri(URI("http://${paymentProviderHostPort}/external/accounts?serviceName=onlineStore")) // todo sukhoa service name
             .GET()
             .build()
 
