@@ -6,6 +6,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
 import org.slf4j.LoggerFactory
+import ru.quipy.common.utils.NonBlockingOngoingWindow
 import ru.quipy.common.utils.OngoingWindow
 import ru.quipy.common.utils.RateLimiter
 import ru.quipy.core.EventSourcingService
@@ -19,8 +20,7 @@ import java.util.*
 class PaymentExternalSystemAdapterImpl(
     private val properties: PaymentAccountProperties,
     private val paymentESService: EventSourcingService<UUID, PaymentAggregate, PaymentAggregateState>,
-    private val rateLimiter: RateLimiter,
-    private val ongoingWindow: OngoingWindow,
+    private val ongoingWindow: NonBlockingOngoingWindow,
 ) : PaymentExternalSystemAdapter {
 
     companion object {
@@ -57,10 +57,6 @@ class PaymentExternalSystemAdapterImpl(
         }.build()
 
         try {
-            ongoingWindow.acquire()
-            while (!rateLimiter.tick()) {
-                Thread.sleep(10)
-            }
             client.newCall(request).execute().use { response ->
                 val body = try {
                     mapper.readValue(response.body?.string(), ExternalSysResponse::class.java)
@@ -94,8 +90,6 @@ class PaymentExternalSystemAdapterImpl(
                     }
                 }
             }
-        } finally {
-            ongoingWindow.release()
         }
     }
 
